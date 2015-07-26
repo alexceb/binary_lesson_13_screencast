@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Lesson 13</title>
+	<meta charset='UTF-8'>
+</head>
+<body>
+<div>
+	<input type="text" placeholder="Your name..." id="nameInput">
+	<button id="nameButton">OK</button>
+</div>
+<ul id="messages"></ul>
+<div>
+	<textarea id="text" cols="30" rows="10"></textarea>
+	<button id="submitButton">Send</button>
+</div>
+
+
+<script>
+	(function() {
+		var nameButton = document.getElementById('nameButton'),
+			nameInput = document.getElementById('nameInput')
+			text = document.getElementById('text')
+			submitButton = document.getElementById('submitButton'),
+			messages = document.getElementById('messages'),
+			userName = 'User';
+
+		nameButton.addEventListener('click', function() {
+			userName = nameInput.value || 'User';
+		});
+
+		submitButton.addEventListener('click', function() {
+			var data = {
+				name: userName,
+				text: text.value
+			};
+
+			text.value = '';
+
+			ajaxRequest({
+				method: 'POST',
+				url: '/messages',
+				data: data
+			});
+		});
+
+		getData();
+
+		setInterval(function() {
+			getData();
+		}, 1000);
+
+		function ajaxRequest(options) {
+			var url = options.url || '/',
+				method = options.method || 'GET',
+				callback = options.callback || function() {},
+				data = options.data || {},
+				xmlHttp = new XMLHttpRequest();
+
+			xmlHttp.open(method, url, true);
+			xmlHttp.setRequestHeader('Content-type', 'application/json');
+			xmlHttp.send(JSON.stringify(data));
+			xmlHttp.onreadystatechange = function() {
+				if (xmlHttp.status === 200 && xmlHttp.readyState === 4) {
+					callback(xmlHttp.responseText);
+				}
+			}
+		}
+
+		function getData() {
+			ajaxRequest({
+				url: '/messages',
+				method: 'GET',
+				callback: function(msg) {
+					var msg = JSON.parse(msg);
+					messages.innerHTML = '';
+					for (var i in msg) {
+						if (msg.hasOwnProperty(i)) {
+							var element = document.createElement('li');
+							element.innerText = msg[i].name + ': ' + msg[i].text;
+							messages.appendChild(element);
+						}
+					}
+				}
+			});
+		}
+	})();
+</script>
+</body>
+</html>
